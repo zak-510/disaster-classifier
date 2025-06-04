@@ -1,21 +1,39 @@
+# Python cache and compiled files
 __pycache__/
-*.pyc
+*.py[cod]
+*.egg-info/
 *.log
-*.pth
-*.pt
-*.h5
-*.pkl
+
+# Datasets, outputs, large generated files
+output/
+predictions/
+xbd_pipeline_output/
+training_data_visualizations/
+train/
+xview2_data_extract/
 *.png
 *.jpg
 *.jpeg
 *.tif
 *.tiff
-output/
-predictions/
-xbd_pipeline_output/
-training_data_visualizations/
+*.pth
+*.pt
+*.h5
+*.pkl
+*.npz
+*.zip
+*.tar
+*.gz
+
+# Environments
+venv/
+.env
+
+# IDE/editor folders
 .cursor/
 .vscode/
-venv/
-train/
-xview2_data_extract/
+.idea/
+
+# OS/system files
+.DS_Store
+Thumbs.db
