@@ -8,7 +8,7 @@ Production-ready satellite image damage assessment pipeline with validated perfo
 
 ### Localization Model
 - **Architecture**: U-Net with encoder-decoder structure
-- **Performance**: IoU 0.29, Stable GPU utilization
+- **Performance**: IoU 0.35, Stable GPU utilization
 - **Model File**: `checkpoints/extended/model_epoch_20.pth`
 - **Input/Output**: 1024x1024 satellite images → building segmentation masks
 
