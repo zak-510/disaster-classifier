@@ -1,53 +1,10 @@
-# Core dependencies
-numpy==1.24.3
-torch==2.0.1
-torchvision==0.15.2
-pillow==10.0.0
-opencv-python==4.8.0.74
-pandas==2.0.3
-plotly==5.15.0
-flask==2.3.3
-werkzeug==2.3.7
-pydantic==1.10.12  # Pin to v1 for compatibility
-click==8.1.7
-psutil>=5.9.0
-
-# Development dependencies
-pytest==7.4.0
-pytest-cov==4.1.0
-black==23.7.0
-ruff==0.0.284
-mypy==1.5.1
-
-# Optional dependencies for GPU support
-cupy-cuda11x==12.2.0  # Only if using CUDA 11.x
-tensorflow-gpu==2.13.0  # Only if using TensorFlow
-
-# Data processing
-geopandas>=0.8.1
-shapely>=1.7.1
-rasterio>=1.1.8
-albumentations>=0.5.2
-
-# Machine learning
-scikit-learn>=0.23.2
-tensorboard>=2.4.0
-wandb>=0.10.0
-
-# Visualization and reporting
-matplotlib>=3.3.3
-jinja2>=3.1.2
-flask-cors>=3.0.10
-
-# Testing and development
-flake8>=3.9.2
-safety>=1.10.3
-black>=22.0.0
-ruff>=0.0.200
-
-# Utilities
-tqdm>=4.50.2
-requests>=2.25.1
-python-dotenv>=0.15.0
-gputil>=1.4.0
-pyyaml>=6.0.1 
+torch>=1.9.0
+torchvision>=0.10.0
+numpy>=1.21.0
+matplotlib>=3.3.0
+opencv-python>=4.5.0
+tqdm>=4.60.0
+pillow>=8.0.0
+shapely>=1.7.0
+scikit-image>=0.18.0
+scikit-learn>=0.24.0 

@@ -1,39 +1,28 @@
-# Python cache and compiled files
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
-*.egg-info/
-*.log
 
-# Datasets, outputs, large generated files
-output/
-predictions/
-xbd_pipeline_output/
-training_data_visualizations/
-train/
-xview2_data_extract/
-*.png
-*.jpg
-*.jpeg
-*.tif
-*.tiff
-*.pth
-*.pt
-*.h5
-*.pkl
-*.npz
-*.zip
-*.tar
-*.gz
-
-# Environments
+# Virtual environments
 venv/
-.env
+.env/
 
-# IDE/editor folders
-.cursor/
+# IDE settings
 .vscode/
 .idea/
 
-# OS/system files
-.DS_Store
-Thumbs.db
+# Data and large artifacts
+Data/
+checkpoints/
+weights/
+*.npy
+*.png
+*.json
+
+# Test outputs
+test_results/
+
+# PowerShell execution artifacts
+*.ps1
+
+# Git LFS (optional) tracking hints
+*.pth 
