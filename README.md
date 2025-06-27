@@ -64,10 +64,10 @@ python test_localization_inference.py
 ```
 
 **Expected Output:**
-- Processes 4 test images across 3 disaster types
+- Processes **10** test images across multiple disaster types
 - Generates binary mask visualizations (black background, white buildings)
 - Creates 3-panel format: Original | Ground Truth Masks | Predicted Masks
-- Saves 4 PNG files to `test_results/localization/`
+- Saves **10** PNG files to `test_results/localization/`
 
 ### 2. Run Damage Classification Test
 ```bash
@@ -75,10 +75,10 @@ python test_damage_inference.py
 ```
 
 **Expected Output:**
-- Processes same 4 test images with damage assessment
+- Processes the same **10** test images with damage assessment
 - Generates colored building visualizations on satellite background
 - Creates 3-panel format: Original | Ground Truth Damage | Predicted Damage
-- Saves 4 PNG files to `test_results/damage/`
+- Saves **10** PNG files to `test_results/damage/`
 
 ### 3. Verify Complete Output
 After running both scripts, you should have:
@@ -86,24 +86,19 @@ After running both scripts, you should have:
 test_results/
 ├── localization/
 │   ├── localization_test_1.png
-│   ├── localization_test_2.png
-│   ├── localization_test_3.png
-│   └── localization_test_4.png
+│   ├── ...
+│   └── localization_test_10.png
 └── damage/
     ├── damage_test_1.png
-    ├── damage_test_2.png
-    ├── damage_test_3.png
-    └── damage_test_4.png
+    ├── ...
+    └── damage_test_10.png
 ```
 
 ## Test Image Coverage
 
 The pipeline demonstrates performance across diverse disaster scenarios:
 
-1. **Hurricane Florence 00000007** - 16 ground truth buildings, 15 detected
-2. **Hurricane Michael 00000366** - 1 ground truth building, 1 detected  
-3. **SoCal Fire 00001226** - 1 ground truth building, 1 detected
-4. **Hurricane Florence 00000013** - 50 ground truth buildings, 18 detected
+The evaluation set covers ten diverse scenes, including hurricanes, tsunamis, wildfires, and earthquakes (e.g. *palu-tsunami_00000181*, *hurricane-michael_00000437*, *socal-fire_00001400*, *hurricane-florence_00000095*). This provides a broad sanity-check on generalisation without using any training data.
 
 ## Directory Structure
 
