@@ -56,6 +56,38 @@ pip install -r requirements.txt
 - scikit-image
 - tqdm
 
+## Setup
+
+### 1. Clone the Repository
+```bash
+git clone https://github.com/zak-510/disaster-classifier.git
+cd disaster-classifier
+```
+
+### 2. Download the Dataset
+This project uses the xBD dataset. You will need to download it to train the models or run inference.
+
+1.  Go to the official xView2 website: **[https://xview2.org/](https://xview2.org/)**
+2.  Download the dataset. You may need to register.
+3.  Create a `Data` directory in the root of the project.
+4.  Extract the downloaded dataset and organize it so you have the following structure:
+    ```
+    Data/
+    ├── train/
+    │   ├── images/
+    │   └── labels/
+    └── test/
+        ├── images/
+        └── labels/
+    ```
+
+### 3. Download Pre-trained Models
+The pre-trained models are required to run inference without re-training. They are available as a GitHub Release.
+
+1.  Go to the [Releases page](https://github.com/zak-510/disaster-classifier/releases).
+2.  Download the `models.zip` file from the latest release.
+3.  Extract the contents into the root of your project directory. This should create or overwrite the `checkpoints` and `weights` directories with the pre-trained model files.
+
 ## Quick Start Guide
 
 ### 1. Run Localization Test (Building Detection)
