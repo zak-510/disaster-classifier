@@ -205,7 +205,7 @@ results = run_full_pipeline(image_path)
 - Ensure PyTorch CUDA version matches your system
 
 **Performance Issues:**
-- Use GPU for inference (CPU inference is significantly slower)
+- Use GPU for training (CPU inference is significantly slower)
 - Verify CUDA is properly installed and accessible
 
 ## Performance Monitoring
