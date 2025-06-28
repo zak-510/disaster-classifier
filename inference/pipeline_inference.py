@@ -8,8 +8,8 @@ import matplotlib.patches as patches
 from matplotlib.patches import Polygon
 from shapely.wkt import loads
 from shapely.geometry import Polygon as ShapelyPolygon
-from damage_model import create_damage_model
-from model import create_model
+from models.damage_model import create_damage_model
+from models.model import create_model
 from skimage import measure
 
 def load_models():

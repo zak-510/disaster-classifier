@@ -7,8 +7,15 @@ import json
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from tqdm import tqdm
-from model import create_model
-from damage_model import create_damage_model
+import sys
+
+# Add project root to sys.path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(current_dir)
+sys.path.append(project_root)
+
+from models.model import create_model
+from models.damage_model import create_damage_model
 from shapely.wkt import loads
 from skimage import measure
 
@@ -17,7 +24,7 @@ def load_models():
     
     # Load localization model
     loc_model = create_model().to(device)
-    loc_checkpoint_path = './checkpoints/extended/model_epoch_20.pth'
+    loc_checkpoint_path = os.path.join(project_root, 'checkpoints/extended/model_epoch_20.pth')
     
     if not os.path.exists(loc_checkpoint_path):
         print(f'ERROR: Localization model not found: {loc_checkpoint_path}')
@@ -32,7 +39,7 @@ def load_models():
     
     # Load damage model
     damage_model = create_damage_model().to(device)
-    damage_checkpoint_path = './weights/best_damage_model_optimized.pth'
+    damage_checkpoint_path = os.path.join(project_root, 'weights/best_damage_model_optimized.pth')
     
     if not os.path.exists(damage_checkpoint_path):
         print(f'ERROR: Damage model not found: {damage_checkpoint_path}')
@@ -46,8 +53,8 @@ def load_models():
     return loc_model, damage_model, device
 
 def load_test_image_and_labels(image_id):
-    base_path = f'./Data/test/images/{image_id}_post_disaster.png'
-    labels_path = f'./Data/test/labels/{image_id}_post_disaster.json'
+    base_path = os.path.join(project_root, f'Data/test/images/{image_id}_post_disaster.png')
+    labels_path = os.path.join(project_root, f'Data/test/labels/{image_id}_post_disaster.json')
     
     if not os.path.exists(base_path) or not os.path.exists(labels_path):
         return None, None
@@ -263,22 +270,26 @@ def run_damage_test():
     
     print(f'Processing {len(test_images)} test images...')
     
-    for i, image_id in enumerate(test_images, 1):
-        print(f'\nProcessing image {i}/{len(test_images)}: {image_id}')
+    # Create the output directory if it doesn't exist
+    output_dir = os.path.join(project_root, 'test_results/damage')
+    os.makedirs(output_dir, exist_ok=True)
+    
+    for image_id in test_images:
+        print(f'\nProcessing Test Image: {image_id}')
         
         image, labels_data = load_test_image_and_labels(image_id)
         if image is None:
-            print(f'ERROR: Could not load {image_id}')
+            print(f'  ERROR: Could not load image or labels for {image_id}')
             continue
+            
+        output_path = os.path.join(output_dir, f'damage_test_{test_images.index(image_id) + 1}.png')
         
-        output_path = f'test_results/damage/damage_test_{i}.png'
-        process_image(loc_model, damage_model, device, image, labels_data, image_id, output_path)
+        try:
+            process_image(loc_model, damage_model, device, image, labels_data, image_id, output_path)
+        except Exception as e:
+            print(f'  ERROR: Failed to process {image_id}: {e}')
     
-    print(f'\n' + '=' * 60)
-    print('DAMAGE CLASSIFICATION INFERENCE TEST COMPLETE')
-    print('Generated files:')
-    for idx in range(1, len(test_images) + 1):
-        print(f'  - test_results/damage/damage_test_{idx}.png')
+    print(f'\nSUCCESS: Test complete. Visualizations saved to {output_dir}/')
 
 if __name__ == '__main__':
     run_damage_test() 

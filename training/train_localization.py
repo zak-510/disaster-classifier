@@ -3,8 +3,15 @@ import torch.nn as nn
 import torch.optim as optim
 from tqdm import tqdm
 import os
-from model import create_model, calculate_iou
-from localization_data import get_proper_data_loaders
+import sys
+
+# Add project root to sys.path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(current_dir)
+sys.path.append(project_root)
+
+from models.model import create_model, calculate_iou
+from data_processing.localization_data import get_proper_data_loaders
 
 def train_model():
     device = torch.device('cuda')
@@ -14,7 +21,7 @@ def train_model():
     
     torch.cuda.empty_cache()
     
-    data_dir = './Data'
+    data_dir = os.path.join(project_root, 'Data')
     if not os.path.exists(data_dir):
         print(f'Data directory {data_dir} not found!')
         return
@@ -94,8 +101,11 @@ def train_model():
         
         if avg_val_iou > best_iou:
             best_iou = avg_val_iou
-            torch.save(model.state_dict(), 'best_model_proper.pth')
-            print(f'Best IoU: {best_iou:.4f} - Model saved!')
+            weights_dir = os.path.join(project_root, 'weights')
+            os.makedirs(weights_dir, exist_ok=True)
+            model_path = os.path.join(weights_dir, 'best_model_proper.pth')
+            torch.save(model.state_dict(), model_path)
+            print(f'Best IoU: {best_iou:.4f} - Model saved to {model_path}!')
         
         max_mem = torch.cuda.max_memory_allocated(0) // 1024**2
         print(f'Max GPU Memory: {max_mem}MB')

@@ -5,15 +5,22 @@ from tqdm import tqdm
 import os
 import time
 import numpy as np
-from damage_model import create_damage_model, calculate_accuracy
-from damage_data import get_damage_data_loaders
+import sys
 
-def test_configuration(batch_size, learning_rate, test_batches=50):
+# Add project root to sys.path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(current_dir)
+sys.path.append(project_root)
+
+from models.damage_model import create_damage_model, calculate_accuracy
+from data_processing.damage_data import get_damage_data_loaders
+
+def test_configuration(batch_size, learning_rate, max_batches=50):
     """Test a specific batch size and learning rate configuration"""
     device = torch.device('cuda')
     torch.cuda.empty_cache()
     
-    data_dir = './Data'
+    data_dir = os.path.join(project_root, 'Data')
     model = create_damage_model().to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-5, eps=1e-8)
@@ -36,7 +43,7 @@ def test_configuration(batch_size, learning_rate, test_batches=50):
     total_acc = 0.0
     
     for batch_idx, (patches, labels) in enumerate(train_loader):
-        if batch_idx >= test_batches:
+        if batch_idx >= max_batches:
             break
             
         patches = patches.to(device, non_blocking=True)
@@ -153,7 +160,7 @@ def run_optimized_training(batch_size, learning_rate, epochs=10):
     device = torch.device('cuda')
     torch.cuda.empty_cache()
     
-    data_dir = './Data'
+    data_dir = os.path.join(project_root, 'Data')
     model = create_damage_model().to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-4, eps=1e-8)
@@ -250,17 +257,19 @@ def run_optimized_training(batch_size, learning_rate, epochs=10):
         avg_val_loss = val_loss / len(val_loader)
         avg_val_acc = val_acc / len(val_loader)
         
-        scheduler.step(avg_val_loss)
+        print(f'Train Loss: {avg_train_loss:.4f}, Train Acc: {avg_train_acc:.4f}')
+        print(f'Val Loss: {avg_val_loss:.4f}, Val Acc: {avg_val_acc:.4f}')
         
-        print(f'Epoch {epoch+1} Results:')
-        print(f'  Train: Loss={avg_train_loss:.4f}, Acc={avg_train_acc:.4f} ({successful_batches}/{successful_batches+failed_batches} batches)')
-        print(f'  Val:   Loss={avg_val_loss:.4f}, Acc={avg_val_acc:.4f}')
-        
-        # Save best model
+        # Save model checkpoint
         if avg_val_acc > best_acc:
             best_acc = avg_val_acc
-            model_path = './weights/best_damage_model_optimized.pth'
-            os.makedirs('./weights', exist_ok=True)
+            
+            # Ensure the directory exists
+            weights_dir = os.path.join(project_root, 'weights')
+            os.makedirs(weights_dir, exist_ok=True)
+            
+            model_save_path = os.path.join(weights_dir, 'best_damage_model_optimized.pth')
+            
             torch.save({
                 'epoch': epoch + 1,
                 'model_state_dict': model.state_dict(),
@@ -268,8 +277,11 @@ def run_optimized_training(batch_size, learning_rate, epochs=10):
                 'best_acc': best_acc,
                 'batch_size': batch_size,
                 'learning_rate': learning_rate
-            }, model_path)
-            print(f'  ✓ New best model saved! Acc: {best_acc:.4f}')
+            }, model_save_path)
+            
+            print(f'Best model saved to {model_save_path} (Accuracy: {best_acc:.4f})')
+        
+        scheduler.step(avg_val_loss)
     
     print(f'\nTraining completed!')
     print(f'Best validation accuracy: {best_acc:.4f} ({best_acc*100:.1f}%)')

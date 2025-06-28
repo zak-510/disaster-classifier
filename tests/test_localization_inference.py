@@ -7,14 +7,21 @@ import json
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from tqdm import tqdm
-from model import create_model
+import sys
+
+# Add project root to sys.path
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.dirname(current_dir)
+sys.path.append(project_root)
+
+from models.model import create_model
 from shapely.wkt import loads
 
 def load_localization_model():
     device = torch.device('cuda')
     model = create_model().to(device)
     
-    checkpoint_path = './checkpoints/extended/model_epoch_20.pth'
+    checkpoint_path = os.path.join(project_root, 'checkpoints/extended/model_epoch_20.pth')
     if not os.path.exists(checkpoint_path):
         print(f'ERROR: Localization model not found: {checkpoint_path}')
         return None, device
@@ -30,8 +37,8 @@ def load_localization_model():
     return model, device
 
 def load_test_image_and_labels(image_id):
-    base_path = f'./Data/test/images/{image_id}_post_disaster.png'
-    labels_path = f'./Data/test/labels/{image_id}_post_disaster.json'
+    base_path = os.path.join(project_root, f'Data/test/images/{image_id}_post_disaster.png')
+    labels_path = os.path.join(project_root, f'Data/test/labels/{image_id}_post_disaster.json')
     
     if not os.path.exists(base_path) or not os.path.exists(labels_path):
         return None, None, None
@@ -119,6 +126,10 @@ def run_localization_test():
     
     print(f'Processing {len(test_images)} test images...')
     
+    # Create the output directory if it doesn't exist
+    output_dir = os.path.join(project_root, 'test_results/localization')
+    os.makedirs(output_dir, exist_ok=True)
+    
     for i, image_id in enumerate(test_images, 1):
         print(f'\nProcessing image {i}/{len(test_images)}: {image_id}')
         
@@ -129,14 +140,12 @@ def run_localization_test():
         
         prediction_mask = predict_localization(model, device, image)
         
-        output_path = f'test_results/localization/localization_test_{i}.png'
+        output_path = os.path.join(output_dir, f'localization_test_{i}.png')
         create_three_panel_visualization(image, ground_truth_mask, prediction_mask, image_id, output_path)
     
     print(f'\n' + '=' * 60)
     print('LOCALIZATION INFERENCE TEST COMPLETE')
-    print('Generated files:')
-    for idx in range(1, len(test_images) + 1):
-        print(f'  - test_results/localization/localization_test_{idx}.png')
+    print(f'Visualizations saved to {output_dir}/')
 
 if __name__ == '__main__':
     run_localization_test() 
