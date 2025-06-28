@@ -82,7 +82,7 @@ This project uses the xBD dataset. You will need to download it to train the mod
     ```
 
 ### 3. Download Pre-trained Models
-The pre-trained models are required to run inference without re-training. They are available as a GitHub Release.
+The pre-trained models are required to run inference without re-training. They are available on the official GitHub **[Releases page](https://github.com/zak-510/disaster-classifier/releases)** for this repository.
 
 1.  Go to the [Releases page](https://github.com/zak-510/disaster-classifier/releases).
 2.  Download the `models.zip` file from the latest release.
@@ -90,41 +90,30 @@ The pre-trained models are required to run inference without re-training. They a
 
 ## Quick Start Guide
 
-### 1. Run Localization Test (Building Detection)
+### 1. Run the Full Inference Pipeline
+To run the end-to-end pipeline which performs building localization and damage assessment, run the following command:
 ```bash
-python test_localization_inference.py
+python inference/pipeline_inference.py
 ```
+This script will process test images and save the output visualizations to `test_results/`.
 
+### 2. Run Individual Tests (Optional)
+
+#### Building Localization Test
+```bash
+python tests/test_localization_inference.py
+```
 **Expected Output:**
-- Processes **10** test images across multiple disaster types
 - Generates binary mask visualizations (black background, white buildings)
-- Creates 3-panel format: Original | Ground Truth Masks | Predicted Masks
-- Saves **10** PNG files to `test_results/localization/`
+- Saves PNG files to `test_results/localization/`
 
-### 2. Run Damage Classification Test
+#### Damage Classification Test
 ```bash
-python test_damage_inference.py
+python tests/test_damage_inference.py
 ```
-
 **Expected Output:**
-- Processes the same **10** test images with damage assessment
-- Generates colored building visualizations on satellite background
-- Creates 3-panel format: Original | Ground Truth Damage | Predicted Damage
-- Saves **10** PNG files to `test_results/damage/`
-
-### 3. Verify Complete Output
-After running both scripts, you should have:
-```
-test_results/
-├── localization/
-│   ├── localization_test_1.png
-│   ├── ...
-│   └── localization_test_10.png
-└── damage/
-    ├── damage_test_1.png
-    ├── ...
-    └── damage_test_10.png
-```
+- Generates colored building visualizations on a satellite background
+- Saves PNG files to `test_results/damage/`
 
 ## Test Image Coverage
 
@@ -133,35 +122,34 @@ The pipeline demonstrates performance across diverse disaster scenarios:
 The evaluation set covers ten diverse scenes, including hurricanes, tsunamis, wildfires, and earthquakes (e.g. *palu-tsunami_00000181*, *hurricane-michael_00000437*, *socal-fire_00001400*, *hurricane-florence_00000095*). This provides a broad sanity-check on generalisation without using any training data.
 
 ## Directory Structure
-
 ```
-xbd-pipeline/
-├── README.md                     # This file
-├── requirements.txt              # Python dependencies
-├── test_localization_inference.py # Building detection test
-├── test_damage_inference.py      # Damage classification test
-├── model.py                      # U-Net architecture
-├── damage_model.py               # CNN classifier
-├── localization_data.py          # Data processing for localization
-├── damage_data.py                # Data processing for damage classification
-├── localization_inference.py     # Core localization inference
-├── damage_inference.py           # Core damage inference
-├── pipeline_inference.py         # End-to-end pipeline
-├── train_localization.py         # Localization model training
-├── train_damage.py               # Damage model training
-├── Data/                         # Satellite images and labels
-│   ├── test/
-│   │   ├── images/              # Test satellite images
-│   │   └── labels/              # Ground truth annotations
-│   └── train/                   # Training data
-├── checkpoints/                  # Localization model files
-│   └── extended/
-│       └── model_epoch_20.pth   # Trained localization model
-├── weights/                      # Damage classification model files
-│   └── best_damage_model_optimized.pth # Trained damage model
-└── test_results/                # Generated test outputs
-    ├── localization/            # Building detection results
-    └── damage/                  # Damage classification results
+disaster-classifier/
+├── README.md              # This file
+├── requirements.txt       # Python dependencies
+├── .gitignore             # Files to ignore in git
+├── Data/                  # For storing the xBD dataset (not in git)
+│   ├── train/
+│   └── test/
+├── checkpoints/           # For saved localization model checkpoints (not in git)
+├── weights/               # For saved damage model weights (not in git)
+├── test_results/          # For generated inference outputs (not in git)
+├── data_processing/       # Scripts for data preprocessing
+│   ├── localization_data.py
+│   └── damage_data.py
+├── models/                # Model architecture definitions
+│   ├── __init__.py
+│   ├── model.py
+│   └── damage_model.py
+├── training/              # Scripts for training the models
+│   ├── train_localization.py
+│   └── train_damage.py
+├── inference/             # Scripts for running inference
+│   ├── localization_inference.py
+│   ├── damage_inference.py
+│   └── pipeline_inference.py
+└── tests/                 # Test scripts for validation
+    ├── test_localization_inference.py
+    └── test_damage_inference.py
 ```
 
 ## Model Training (Optional)
@@ -170,12 +158,12 @@ If you need to retrain models:
 
 ### Localization Model:
 ```bash
-python train_localization.py
+python training/train_localization.py
 ```
 
 ### Damage Classification Model:
 ```bash
-python train_damage.py
+python training/train_damage.py
 ```
 
 **Note**: Training requires significant computational resources and time.
@@ -186,19 +174,19 @@ python train_damage.py
 
 #### Building Localization:
 ```python
-from localization_inference import run_localization_inference
+from inference.localization_inference import run_localization_inference
 results = run_localization_inference(image_path)
 ```
 
 #### Damage Classification:
 ```python
-from damage_inference import run_damage_inference  
+from inference.damage_inference import run_damage_inference
 results = run_damage_inference(image_path)
 ```
 
 #### Full Pipeline:
 ```python
-from pipeline_inference import run_full_pipeline
+from inference.pipeline_inference import run_full_pipeline
 results = run_full_pipeline(image_path)
 ```
 
