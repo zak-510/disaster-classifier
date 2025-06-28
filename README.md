@@ -132,7 +132,7 @@ disaster-classifier/
 │   └── test/
 ├── checkpoints/           # For saved localization model checkpoints (not in git)
 ├── weights/               # For saved damage model weights (not in git)
-├── test_results/          # For generated inference outputs (not in git)
+├── test_results/          # For generated inference outputs 
 ├── data_processing/       # Scripts for data preprocessing
 │   ├── localization_data.py
 │   └── damage_data.py
