@@ -20,17 +20,17 @@ from shapely.wkt import loads
 from skimage import measure
 
 def load_models():
-    device = torch.device('cuda')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     
     # Load localization model
     loc_model = create_model().to(device)
-    loc_checkpoint_path = os.path.join(project_root, 'checkpoints/extended/model_epoch_20.pth')
+    loc_checkpoint_path = os.path.join(project_root, 'checkpoints/checkpoints/extended/model_epoch_20.pth')
     
     if not os.path.exists(loc_checkpoint_path):
         print(f'ERROR: Localization model not found: {loc_checkpoint_path}')
         return None, None, device
     
-    loc_checkpoint = torch.load(loc_checkpoint_path)
+    loc_checkpoint = torch.load(loc_checkpoint_path, map_location=device)
     if isinstance(loc_checkpoint, dict) and 'model_state_dict' in loc_checkpoint:
         loc_model.load_state_dict(loc_checkpoint['model_state_dict'])
     else:
@@ -39,13 +39,13 @@ def load_models():
     
     # Load damage model
     damage_model = create_damage_model().to(device)
-    damage_checkpoint_path = os.path.join(project_root, 'weights/best_damage_model_optimized.pth')
+    damage_checkpoint_path = os.path.join(project_root, 'checkpoints/weights/best_damage_model_optimized.pth')
     
     if not os.path.exists(damage_checkpoint_path):
         print(f'ERROR: Damage model not found: {damage_checkpoint_path}')
         return None, None, device
     
-    damage_checkpoint = torch.load(damage_checkpoint_path)
+    damage_checkpoint = torch.load(damage_checkpoint_path, map_location=device)
     damage_model.load_state_dict(damage_checkpoint['model_state_dict'])
     damage_model.eval()
     

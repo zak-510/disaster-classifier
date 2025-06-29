@@ -18,15 +18,15 @@ from models.model import create_model
 from shapely.wkt import loads
 
 def load_localization_model():
-    device = torch.device('cuda')
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = create_model().to(device)
     
-    checkpoint_path = os.path.join(project_root, 'checkpoints/extended/model_epoch_20.pth')
+    checkpoint_path = os.path.join(project_root, 'checkpoints/checkpoints/extended/model_epoch_20.pth')
     if not os.path.exists(checkpoint_path):
         print(f'ERROR: Localization model not found: {checkpoint_path}')
         return None, device
     
-    checkpoint = torch.load(checkpoint_path)
+    checkpoint = torch.load(checkpoint_path, map_location=device)
     if isinstance(checkpoint, dict) and 'model_state_dict' in checkpoint:
         model.load_state_dict(checkpoint['model_state_dict'])
     else:

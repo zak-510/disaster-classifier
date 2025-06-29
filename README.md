@@ -7,21 +7,24 @@ Satellite image damage assessment with performance metrics and testing.
 ### Localization Model
 - **Architecture**: U-Net with encoder-decoder structure
 - **Performance**: IoU 0.29, Stable GPU utilization
-- **Model File**: `checkpoints/extended/model_epoch_20.pth`
+- **Model File**: `checkpoints/checkpoints/extended/model_epoch_20.pth`
 - **Input/Output**: 1024x1024 satellite images → building segmentation masks
 
 ### Damage Classification Model  
 - **Architecture**: CNN classifier for building damage assessment
-- **Overall Accuracy**: **70.2%** (✅ TARGET MET)
+- **Overall F1 Score (Macro)**: **36.7%** 
+- **Overall F1 Score (Weighted)**: **44.2%**
 - **Mean IoU**: **41.1%** (82% of 50% target)
-- **Model File**: `weights/best_damage_model_optimized.pth`
+- **Model File**: `checkpoints/weights/best_damage_model_optimized.pth`
 - **Input/Output**: 64x64 building patches → damage class prediction
 
-#### Per-Class Performance:
-- **No-damage**: 70.7%
-- **Minor-damage**: 64.6% 
-- **Major-damage**: 65.2%
-- **Destroyed**: 80.8%
+#### Per-Class Performance (F1 Score):
+- **No-damage**: 37.1%
+- **Minor-damage**: 24.6% 
+- **Major-damage**: 1.2%
+- **Destroyed**: 83.8%
+
+*Note: F1 Score provides balanced evaluation for imbalanced damage classes. The model performs exceptionally well on destroyed buildings (83.8% F1) but struggles with major-damage detection (1.2% F1), indicating class imbalance challenges.*
 
 ## Hardware Requirements
 
@@ -214,7 +217,7 @@ The pipeline includes comprehensive logging and performance metrics:
 - Model loading confirmation
 - Processing time per image
 - Building detection counts
-- Accuracy metrics per test image
+- Performance metrics per test image (F1 Score implementation recommended)
 
 ## Production Deployment
 
