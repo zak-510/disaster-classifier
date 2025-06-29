@@ -1,22 +1,48 @@
-# Byte-compiled / optimized / DLL files
+# Data and documentation
+Data/
+docs/
+
+# Model checkpoints and weights (we'll selectively include the best ones)
+models/checkpoints/*
+!models/checkpoints/new_training/
+models/weights/*
+!models/weights/best_damage_model_optimized.pth
+
+# Python
 __pycache__/
 *.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
 
 # Virtual environments
 venv/
 .env/
-
-# IDE settings
-.vscode/
-.idea/
-
-# Data and large artifacts
-Data/
-checkpoints/
-weights/
-*.npy
-*.png
-*.json
 
 # Test outputs
 test_results/

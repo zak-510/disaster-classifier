@@ -17,7 +17,7 @@ class DamageConvBlock(nn.Module):
         return self.conv(x)
 
 class DamageCNN(nn.Module):
-    def __init__(self, num_classes=4):
+    def __init__(self, num_classes=4, dropout_rate=0.4):
         super().__init__()
         
         self.features = nn.Sequential(
@@ -35,13 +35,13 @@ class DamageCNN(nn.Module):
         )
         
         self.classifier = nn.Sequential(
-            nn.Dropout(0.5),
+            nn.Dropout(dropout_rate),
             nn.Linear(512, 256),
             nn.ReLU(inplace=True),
-            nn.Dropout(0.3),
+            nn.Dropout(dropout_rate * 0.75),
             nn.Linear(256, 128),
             nn.ReLU(inplace=True),
-            nn.Dropout(0.2),
+            nn.Dropout(dropout_rate * 0.5),
             nn.Linear(128, num_classes)
         )
         
@@ -66,8 +66,8 @@ class DamageCNN(nn.Module):
         x = self.classifier(x)
         return x
 
-def create_damage_model():
-    return DamageCNN(num_classes=4)
+def create_damage_model(dropout_rate=0.4):
+    return DamageCNN(num_classes=4, dropout_rate=dropout_rate)
 
 def calculate_accuracy(pred, target):
     with torch.no_grad():

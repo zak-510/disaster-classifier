@@ -7,6 +7,7 @@ from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 from shapely.wkt import loads
 from shapely.geometry import Polygon
+from collections import Counter
 import warnings
 warnings.filterwarnings('ignore')
 
@@ -29,7 +30,7 @@ class DamageDataset(Dataset):
         self.patches = []
         self.labels = []
         self._extract_building_patches()
-        self._balance_classes()
+        self._print_class_distribution()
         
     def _extract_building_patches(self):
         if not os.path.exists(self.image_dir) or not os.path.exists(self.label_dir):
@@ -111,59 +112,46 @@ class DamageDataset(Dataset):
         return None
     
     def _balance_classes(self):
-        if len(self.patches) == 0:
+        """This method is kept for compatibility but no longer performs SMOTE balancing"""
+        if self.split != 'train' or len(self.patches) == 0:
             return
-            
-        class_counts = {}
-        for label in self.labels:
-            class_counts[label] = class_counts.get(label, 0) + 1
-        
-        max_samples_per_class = 10000
-        
-        balanced_patches = []
-        balanced_labels = []
-        
-        for class_id in range(4):
-            class_patches = [p for i, p in enumerate(self.patches) if self.labels[i] == class_id]
-            
-            if len(class_patches) > 0:
-                if len(class_patches) > max_samples_per_class:
-                    indices = np.random.choice(len(class_patches), max_samples_per_class, replace=False)
-                    class_patches = [class_patches[i] for i in indices]
-                
-                min_samples = min(len(class_patches), 2000)
-                while len(class_patches) < min_samples:
-                    idx = np.random.randint(len(class_patches))
-                    augmented_patch = self._augment_patch(class_patches[idx])
-                    class_patches.append(augmented_patch)
-                
-                class_labels = [class_id] * len(class_patches)
-                balanced_patches.extend(class_patches)
-                balanced_labels.extend(class_labels)
-        
-        self.patches = balanced_patches
-        self.labels = balanced_labels
-        
-        print(f'Balanced dataset: {len(self.patches)} patches')
+        # No SMOTE balancing - just print class distribution
         self._print_class_distribution()
     
     def _augment_patch(self, patch):
         h, w = patch.shape[:2]
         
+        # Horizontal flip
         if np.random.random() > 0.5:
             patch = cv2.flip(patch, 1)
         
+        # Vertical flip
         if np.random.random() > 0.5:
             patch = cv2.flip(patch, 0)
         
-        if np.random.random() > 0.5:
-            angle = np.random.uniform(-30, 30)
+        # Rotation with higher probability for minority classes
+        if np.random.random() > 0.3:  # Increased probability
+            angle = np.random.uniform(-45, 45)  # Wider range
             M = cv2.getRotationMatrix2D((w//2, h//2), angle, 1)
             patch = cv2.warpAffine(patch, M, (w, h))
         
+        # Brightness and contrast adjustment
+        if np.random.random() > 0.4:
+            brightness = np.random.uniform(0.7, 1.3)  # Wider range
+            contrast = np.random.uniform(0.8, 1.2)
+            patch = np.clip(patch * brightness * contrast, 0, 255).astype(np.uint8)
+        
+        # Gaussian noise for regularization
+        if np.random.random() > 0.6:
+            noise = np.random.normal(0, 5, patch.shape).astype(np.uint8)
+            patch = np.clip(patch.astype(np.int16) + noise, 0, 255).astype(np.uint8)
+        
+        # Color jittering
         if np.random.random() > 0.5:
-            brightness = np.random.uniform(0.8, 1.2)
-            patch = np.clip(patch * brightness, 0, 255).astype(np.uint8)
+            # Random color channel shifts
+            for c in range(3):
+                shift = np.random.uniform(-10, 10)
+                patch[:, :, c] = np.clip(patch[:, :, c] + shift, 0, 255)
         
         return patch
     

@@ -1,56 +1,119 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils.checkpoint import checkpoint
 
-class SimpleConv(nn.Module):
+class AttentionGate(nn.Module):
+    def __init__(self, F_g, F_l, F_int):
+        super().__init__()
+        self.W_g = nn.Sequential(
+            nn.Conv2d(F_g, F_int, kernel_size=1, bias=False),
+            nn.BatchNorm2d(F_int)
+        )
+        self.W_x = nn.Sequential(
+            nn.Conv2d(F_l, F_int, kernel_size=1, bias=False),
+            nn.BatchNorm2d(F_int)
+        )
+        self.psi = nn.Sequential(
+            nn.Conv2d(F_int, 1, kernel_size=1, bias=False),
+            nn.BatchNorm2d(1),
+            nn.Sigmoid()
+        )
+        self.relu = nn.ReLU(inplace=True)
+
+    def forward(self, g, x):
+        g1 = self.W_g(g)
+        x1 = self.W_x(x)
+        psi = self.relu(g1 + x1)
+        psi = self.psi(psi)
+        return x * psi
+
+class DoubleConv(nn.Module):
     def __init__(self, in_ch, out_ch):
         super().__init__()
+        mid_ch = out_ch // 2
         self.conv = nn.Sequential(
-            nn.Conv2d(in_ch, out_ch, 3, padding=1),
-            nn.BatchNorm2d(out_ch),
+            # Use 1x1 conv to reduce channels first
+            nn.Conv2d(in_ch, mid_ch, 1, bias=False),
+            nn.BatchNorm2d(mid_ch),
             nn.ReLU(inplace=True),
-            nn.Conv2d(out_ch, out_ch, 3, padding=1),
+            # Depthwise separable convolution
+            nn.Conv2d(mid_ch, mid_ch, 3, padding=1, groups=mid_ch, bias=False),
+            nn.BatchNorm2d(mid_ch),
+            nn.ReLU(inplace=True),
+            # Pointwise convolution
+            nn.Conv2d(mid_ch, out_ch, 1, bias=False),
             nn.BatchNorm2d(out_ch),
             nn.ReLU(inplace=True)
         )
+        self.se = SEBlock(out_ch, reduction=16)  # Standard reduction ratio
 
     def forward(self, x):
-        return self.conv(x)
+        return self.se(self.conv(x))
+
+class SEBlock(nn.Module):
+    def __init__(self, channel, reduction=8):
+        super().__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(channel, channel // reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(channel // reduction, channel, bias=False),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        b, c, _, _ = x.size()
+        y = self.avg_pool(x).view(b, c)
+        y = self.fc(y).view(b, c, 1, 1)
+        return x * y.expand_as(x)
 
 class Down(nn.Module):
     def __init__(self, in_ch, out_ch):
         super().__init__()
-        self.pool_conv = nn.Sequential(
+        self.maxpool_conv = nn.Sequential(
             nn.MaxPool2d(2),
-            SimpleConv(in_ch, out_ch)
+            DoubleConv(in_ch, out_ch)
         )
 
     def forward(self, x):
-        return self.pool_conv(x)
+        return self.maxpool_conv(x)
 
 class Up(nn.Module):
     def __init__(self, in_ch, out_ch):
         super().__init__()
-        self.up = nn.ConvTranspose2d(in_ch, in_ch // 2, 2, stride=2)
-        self.conv = SimpleConv(in_ch, out_ch)
+        self.up = nn.ConvTranspose2d(in_ch, in_ch // 2, kernel_size=2, stride=2)
+        self.attention = AttentionGate(in_ch // 2, in_ch // 2, in_ch // 4)
+        self.conv = DoubleConv(in_ch, out_ch)
 
     def forward(self, x1, x2):
         x1 = self.up(x1)
+        x2 = self.attention(x1, x2)
         x = torch.cat([x2, x1], dim=1)
         return self.conv(x)
 
-class SmallUNet(nn.Module):
+class ImprovedUNet(nn.Module):
     def __init__(self):
         super().__init__()
-        self.inc = SimpleConv(3, 16)
-        self.down1 = Down(16, 32)
-        self.down2 = Down(32, 64)
-        self.down3 = Down(64, 128)
-        self.up1 = Up(128, 64)
-        self.up2 = Up(64, 32)
-        self.up3 = Up(32, 16)
-        self.outc = nn.Conv2d(16, 1, 1)
+        # Use multiples of 32 for better GPU utilization
+        self.inc = DoubleConv(3, 32)
+        self.down1 = Down(32, 64)
+        self.down2 = Down(64, 128)
+        self.down3 = Down(128, 256)
+        self.down4 = Down(256, 512)
+        self.up1 = Up(512, 256)
+        self.up2 = Up(256, 128)
+        self.up3 = Up(128, 64)
+        self.up4 = Up(64, 32)
+        self.outc = nn.Sequential(
+            nn.Conv2d(32, 32, kernel_size=3, padding=1, bias=False),
+            nn.BatchNorm2d(32),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(32, 1, kernel_size=1)
+        )
         
         self._init_weights()
+        self.use_checkpointing = True
 
     def _init_weights(self):
         for m in self.modules():
@@ -63,18 +126,36 @@ class SmallUNet(nn.Module):
                 nn.init.constant_(m.bias, 0)
 
     def forward(self, x):
-        x1 = self.inc(x)
-        x2 = self.down1(x1)
-        x3 = self.down2(x2)
-        x4 = self.down3(x3)
-        x = self.up1(x4, x3)
-        x = self.up2(x, x2)
-        x = self.up3(x, x1)
-        x = self.outc(x)
-        return x
+        # Use checkpointing only for larger tensors
+        if self.use_checkpointing and self.training:
+            x1 = self.inc(x)  # Don't checkpoint first layer
+            x2 = checkpoint(self.down1, x1)
+            x3 = checkpoint(self.down2, x2)
+            x4 = checkpoint(self.down3, x3)
+            x5 = checkpoint(self.down4, x4)
+            x = checkpoint(self.up1, x5, x4)
+            x = checkpoint(self.up2, x, x3)
+            x = checkpoint(self.up3, x, x2)
+            x = checkpoint(self.up4, x, x1)
+            return self.outc(x)
+        else:
+            x1 = self.inc(x)
+            x2 = self.down1(x1)
+            x3 = self.down2(x2)
+            x4 = self.down3(x3)
+            x5 = self.down4(x4)
+            x = self.up1(x5, x4)
+            x = self.up2(x, x3)
+            x = self.up3(x, x2)
+            x = self.up4(x, x1)
+            return self.outc(x)
 
 def create_model():
-    return SmallUNet()
+    model = ImprovedUNet()
+    # Ensure all parameters require gradients
+    for param in model.parameters():
+        param.requires_grad = True
+    return model
 
 def calculate_iou(pred, target, threshold=0.5):
     with torch.no_grad():
