@@ -3,12 +3,6 @@ Data/
 docs/
 test_results/
 
-# Model checkpoints and weights (we'll selectively include the best ones)
-models/checkpoints/*
-!models/checkpoints/new_training/
-models/weights/*
-!models/weights/best_damage_model_optimized.pth
-
 # Python
 __pycache__/
 *.py[cod]
@@ -47,6 +41,13 @@ venv/
 
 # PowerShell execution artifacts
 *.ps1
+
+# Jupyter notebooks
+*.ipynb_checkpoints/
+
+# Temporary files
+*.tmp
+*.log
 
 # Git LFS (optional) tracking hints
 *.pth 

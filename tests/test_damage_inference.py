@@ -24,7 +24,7 @@ def load_models():
     
     # Load localization model
     loc_model = create_model().to(device)
-    loc_checkpoint_path = os.path.join(project_root, 'models/checkpoints/extended/model_epoch_20.pth')
+    loc_checkpoint_path = os.path.join(project_root, 'weights/best_localization.pth')
     
     if not os.path.exists(loc_checkpoint_path):
         print(f'ERROR: Localization model not found: {loc_checkpoint_path}')
@@ -39,7 +39,7 @@ def load_models():
     
     # Load damage model
     damage_model = create_damage_model().to(device)
-    damage_checkpoint_path = os.path.join(project_root, 'models/weights/best_damage_model_optimized.pth')
+    damage_checkpoint_path = os.path.join(project_root, 'weights/best_damage.pth')
     
     if not os.path.exists(damage_checkpoint_path):
         print(f'ERROR: Damage model not found: {damage_checkpoint_path}')

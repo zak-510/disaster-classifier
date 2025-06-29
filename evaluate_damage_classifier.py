@@ -17,7 +17,7 @@ def evaluate_damage_classifier():
     
     # Load the model
     model = create_damage_model().to(device)
-    checkpoint_path = os.path.join('models', 'weights', 'best_damage_model_optimized.pth')
+    checkpoint_path = os.path.join('weights', 'best_damage.pth')
     checkpoint = torch.load(checkpoint_path)
     model.load_state_dict(checkpoint['model_state_dict'])
     model.eval()

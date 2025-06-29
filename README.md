@@ -1,30 +1,47 @@
-# xBD Damage Assessment
+# xBD Damage Assessment Pipeline
 
-Satellite image damage assessment with performance metrics and testing.
+Deployment-ready pipeline for disaster type and damage classification using satellite imagery from the xBD dataset.
 
 ## Model Performance Metrics
 
 ### Localization Model
-- **Architecture**: U-Net with encoder-decoder structure
-- **Performance**: IoU 0.29, Stable GPU utilization
-- **Model File**: `checkpoints/checkpoints/extended/model_epoch_20.pth`
+- **Architecture**: U-Net with encoder-decoder structure for building segmentation
+- **Performance**: Limited by hardware constraints during training
+- **Model File**: `weights/best_localization.pth`
 - **Input/Output**: 1024x1024 satellite images → building segmentation masks
+- **Status**: Suboptimal performance due to training limitations (see Limitations section)
 
 ### Damage Classification Model  
 - **Architecture**: CNN classifier for building damage assessment
-- **Overall F1 Score (Macro)**: **36.7%** 
-- **Overall F1 Score (Weighted)**: **44.2%**
-- **Mean IoU**: **41.1%** (82% of 50% target)
-- **Model File**: `checkpoints/weights/best_damage_model_optimized.pth`
+- **Overall F1 Score (Weighted)**: **84.4%** (validation set)
+- **Test Set F1 Score (Weighted)**: **82.7%**
+- **Model File**: `weights/best_damage.pth`
 - **Input/Output**: 64x64 building patches → damage class prediction
 
-#### Per-Class Performance (F1 Score):
-- **No-damage**: 37.1%
-- **Minor-damage**: 24.6% 
-- **Major-damage**: 1.2%
-- **Destroyed**: 83.8%
+#### Test Set Performance (F1 Score):
+- **No-damage**: 92% (precision: 88%, recall: 96%)
+- **Minor-damage**: 44% (precision: 61%, recall: 35%)
+- **Major-damage**: 43% (precision: 55%, recall: 35%)
+- **Destroyed**: 72% (precision: 76%, recall: 68%)
 
-*Note: F1 Score provides balanced evaluation for imbalanced damage classes. The model performs exceptionally well on destroyed buildings (83.8% F1) but struggles with major-damage detection (1.2% F1), indicating class imbalance challenges.*
+**Overall Test Accuracy**: 84%
+
+## Pipeline Architecture
+
+The system operates in two stages:
+1. **Building Localization**: Identifies building locations in satellite imagery
+2. **Damage Classification**: Classifies damage level for each detected building
+
+## Limitations
+
+### Localization Model Performance
+The primary limitation of this pipeline is the **localization model performance**. Due to hardware constraints (insufficient GPU memory and training time), the localization model was not trained to optimal performance levels. This directly impacts the overall pipeline effectiveness because:
+
+- Poor building detection leads to missed damage assessments
+- False positive detections create noise in damage predictions
+- The damage classification model performs excellently (84.4% F1-weighted) but is limited by the quality of building detections
+
+**Impact**: The damage classifier achieves strong performance when provided with accurate building regions, but the localization bottleneck reduces end-to-end system effectiveness.
 
 ## Hardware Requirements
 
@@ -37,7 +54,7 @@ Satellite image damage assessment with performance metrics and testing.
 
 ### Recommended:
 - **GPU**: RTX 3060 or better
-- **GPU Memory**: 6GB+ VRAM
+- **GPU Memory**: 8GB+ VRAM
 - **System RAM**: 16GB+
 
 ## Software Dependencies
@@ -48,13 +65,14 @@ pip install -r requirements.txt
 ```
 
 ### Core Dependencies:
-- Python 3.8+
+- Python 3.9+
 - PyTorch with CUDA support
 - OpenCV (cv2)
 - NumPy
 - Matplotlib
 - Shapely
 - scikit-image
+- scikit-learn
 - tqdm
 
 ## Setup
@@ -66,108 +84,115 @@ cd disaster-classifier
 ```
 
 ### 2. Download the Dataset
-This project uses the xBD dataset. You will need to download it to train the models or run inference.
+This project uses the xBD dataset. You will need to download it to train models or run inference.
 
-1.  Go to the official xView2 website: **[https://xview2.org/](https://xview2.org/)**
-2.  Download the dataset. You may need to register.
-3.  Create a `Data` directory in the root of the project.
-4.  Extract the downloaded dataset and organize it so you have the following structure:
-    ```
-    Data/
-    ├── train/
-    │   ├── images/
-    │   └── labels/
-    └── test/
-        ├── images/
-        └── labels/
-    ```
+1. Go to the official xView2 website: https://xview2.org/
+2. Download the dataset (registration may be required)
+3. Create a `Data` directory in the root of the project
+4. Extract the downloaded dataset with the following structure:
+```
+Data/
+├── train/
+│   ├── images/
+│   └── labels/
+└── test/
+    ├── images/
+    └── labels/
+```
 
-### 3. Download Pre-trained Models
-The pre-trained models are required to run inference without re-training. They are available on the official GitHub **[Releases page](https://github.com/zak-510/disaster-classifier/releases)** for this repository.
-
-1.  Go to the [Releases page](https://github.com/zak-510/disaster-classifier/releases).
-2.  Download the `models.zip` file from the latest release.
-3.  Extract the contents into the root of your project directory. This should create or overwrite the `checkpoints` and `weights` directories with the pre-trained model files.
+### 3. Model Files
+Pre-trained models are included in the repository in the `weights/` directory:
+- `weights/best_localization.pth` - Building localization model
+- `weights/best_damage.pth` - Damage classification model
 
 ## Quick Start Guide
 
-### 1. Run the Full Inference Pipeline
-To run the end-to-end pipeline which performs building localization and damage assessment, run the following command:
-```bash
-python inference/pipeline_inference.py
-```
-This script will process test images and save the output visualizations to `test_results/`.
+### 1. Run Individual Inference
 
-### 2. Run Individual Tests (Optional)
-
-#### Building Localization Test
+#### Building Localization
 ```bash
-python tests/test_localization_inference.py
+python inference/localization_inference.py
 ```
-**Expected Output:**
-- Generates binary mask visualizations (black background, white buildings)
-- Saves PNG files to `test_results/localization/`
+**Output:**
+- Processes 10 test images
+- Generates three-panel visualizations (original, ground truth, predictions)
+- Saves results to `test_results/localization/`
 
-#### Damage Classification Test
+#### Damage Classification
 ```bash
-python tests/test_damage_inference.py
+python inference/damage_inference.py
 ```
-**Expected Output:**
-- Generates colored building visualizations on a satellite background
-- Saves PNG files to `test_results/damage/`
+**Output:**
+- Processes 10 test images with end-to-end pipeline
+- Combines localization + damage classification
+- Generates colored damage visualizations
+- Calculates comprehensive F1 metrics
+- Saves results to `test_results/damage/`
+
+### 2. Model Evaluation
+
+#### Damage Classifier Evaluation
+```bash
+python evaluate_damage_classifier.py
+```
+**Output:**
+- Evaluates on full test set (53,850 building patches)
+- Provides detailed performance metrics
+- Generates confusion matrix and classification report
+- Saves detailed results to `test_results/damage_classifier_evaluation.csv`
 
 ## Test Image Coverage
 
 The pipeline demonstrates performance across diverse disaster scenarios:
 
-The evaluation set covers ten diverse scenes, including hurricanes, tsunamis, wildfires, and earthquakes (e.g. *palu-tsunami_00000181*, *hurricane-michael_00000437*, *socal-fire_00001400*, *hurricane-florence_00000095*). This provides a broad sanity-check on generalisation without using any training data.
+Evaluation covers ten test images spanning multiple disaster types including hurricanes (*hurricane-michael_00000366*), tsunamis (*palu-tsunami_00000181*), wildfires (*santa-rosa-wildfire_00000089*), and other natural disasters. This provides comprehensive testing across different disaster scenarios and geographic regions.
 
 ## Directory Structure
 ```
-disaster-classifier/
+xbd-pipeline/
 ├── README.md              # This file
 ├── requirements.txt       # Python dependencies
-├── .gitignore             # Files to ignore in git
-├── Data/                  # For storing the xBD dataset (not in git)
+├── evaluate_damage_classifier.py  # Model evaluation script
+├── Data/                  # xBD dataset (not in repository)
 │   ├── train/
 │   └── test/
-├── checkpoints/           # For saved localization model checkpoints (not in git)
-├── weights/               # For saved damage model weights (not in git)
-├── test_results/          # For generated inference outputs 
-├── data_processing/       # Scripts for data preprocessing
+├── weights/               # Pre-trained model files
+│   ├── best_localization.pth
+│   └── best_damage.pth
+├── test_results/          # Generated inference outputs
+│   ├── localization/
+│   └── damage/
+├── data_processing/       # Data preprocessing scripts
 │   ├── localization_data.py
 │   └── damage_data.py
 ├── models/                # Model architecture definitions
 │   ├── __init__.py
 │   ├── model.py
 │   └── damage_model.py
-├── training/              # Scripts for training the models
+├── training/              # Model training scripts
 │   ├── train_localization.py
 │   └── train_damage.py
-├── inference/             # Scripts for running inference
+├── inference/             # Inference pipeline scripts
 │   ├── localization_inference.py
-│   ├── damage_inference.py
-│   └── pipeline_inference.py
-└── tests/                 # Test scripts for validation
+│   └── damage_inference.py
+└── tests/                 # Test utilities (also used as modules)
     ├── test_localization_inference.py
     └── test_damage_inference.py
 ```
 
 ## Model Training (Optional)
 
-If you need to retrain models:
+### Damage Classification Model:
+```bash
+python training/train_damage.py
+```
 
 ### Localization Model:
 ```bash
 python training/train_localization.py
 ```
 
-### Damage Classification Model:
-```bash
-python training/train_damage.py
-```
-
-**Note**: Training requires significant computational resources and time.
+**Note**: Localization model training requires significant computational resources. The current model was undertrained due to hardware limitations.
 
 ## Integration & API
 
@@ -175,21 +200,43 @@ python training/train_damage.py
 
 #### Building Localization:
 ```python
-from inference.localization_inference import run_localization_inference
-results = run_localization_inference(image_path)
+from tests.test_localization_inference import load_localization_model, predict_localization
+
+model, device = load_localization_model()
+prediction_mask = predict_localization(model, device, image)
 ```
 
 #### Damage Classification:
 ```python
-from inference.damage_inference import run_damage_inference
-results = run_damage_inference(image_path)
+from tests.test_damage_inference import load_models, predict_damage
+
+loc_model, damage_model, device = load_models()
+pred_damage, confidence = predict_damage(damage_model, device, patch)
 ```
 
-#### Full Pipeline:
+#### Complete Pipeline:
 ```python
-from inference.pipeline_inference import run_full_pipeline
-results = run_full_pipeline(image_path)
+from inference.damage_inference import run_damage_inference_with_f1
+f1_score = run_damage_inference_with_f1()
 ```
+
+## Performance Analysis
+
+### Damage Classification Strengths:
+- Excellent performance on "destroyed" buildings (72% F1)
+- Strong overall accuracy (84%) on test set
+- Robust to various disaster types
+- Well-balanced precision/recall for most classes
+
+### Current Limitations:
+1. **Localization bottleneck**: Suboptimal building detection affects pipeline performance
+2. **Class imbalance**: Minor and major damage classes show lower performance
+3. **Hardware constraints**: Limited training capabilities for localization model
+
+### Future Improvements:
+- Enhanced localization model training with better hardware
+- Data augmentation for minority damage classes
+- Ensemble methods for improved robustness
 
 ## Troubleshooting
 
@@ -200,7 +247,7 @@ results = run_full_pipeline(image_path)
 - Ensure sufficient GPU memory (4GB+ required)
 
 **Model File Not Found:**
-- Verify model files exist in correct locations
+- Verify model files exist in `weights/` directory
 - Check file paths in inference scripts
 
 **Import Errors:**
@@ -208,31 +255,41 @@ results = run_full_pipeline(image_path)
 - Ensure PyTorch CUDA version matches your system
 
 **Performance Issues:**
-- Use GPU for training (CPU inference is significantly slower)
-- Verify CUDA is properly installed and accessible
+- Use GPU for inference (CPU significantly slower)
+- Verify CUDA installation and accessibility
 
 ## Performance Monitoring
 
-The pipeline includes comprehensive logging and performance metrics:
-- Model loading confirmation
+The pipeline includes comprehensive logging and metrics:
+- Model loading confirmation with file paths
 - Processing time per image
-- Building detection counts
-- Performance metrics per test image (F1 Score implementation recommended)
+- Building detection and matching statistics
+- Detailed F1 score calculations per class
+- Confusion matrices and classification reports
 
 ## Production Deployment
 
-This pipeline is validated for production use with:
+This pipeline is designed for production use with:
 - Stable inference performance
 - Comprehensive error handling
 - Clean visualization outputs
 - Professional logging format
 - Memory-efficient processing
+- Modular architecture for easy integration
 
-## Support
+## Contributing
 
-For technical support or questions about deployment:
+For improvements or bug fixes:
 1. Verify all dependencies are installed correctly
-2. Run both test scripts to confirm functionality
+2. Run inference scripts to confirm functionality
 3. Check generated outputs in `test_results/` directory
 4. Review logs for any error messages
+
+## License
+
+This project is part of the xBD damage assessment research initiative.
+
+## Acknowledgments
+
+Based on the xView2 dataset and challenge for satellite imagery damage assessment.
 

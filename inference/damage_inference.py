@@ -67,7 +67,7 @@ def run_damage_inference_with_f1():
     print('=' * 60)
     
     # Load the trained model
-    model_path = os.path.join(project_root, 'models/weights/best_damage_model_optimized.pth')
+    model_path = os.path.join(project_root, 'weights/best_damage.pth')
     if not os.path.exists(model_path):
         print(f'ERROR: Model file {model_path} not found!')
         return
