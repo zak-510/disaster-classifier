@@ -222,8 +222,6 @@ f1_score = run_damage_inference_with_f1()
 
 ### Damage Classification Strengths:
 - Excellent performance on "destroyed" buildings (72% F1)
-- Strong overall accuracy (84%) on test set
-- Robust to various disaster types
 - Well-balanced precision/recall for most classes
 
 ### Current Limitations:
