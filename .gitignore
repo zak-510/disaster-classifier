@@ -1,6 +1,7 @@
 # Data and documentation
 Data/
 docs/
+test_results/
 
 # Model checkpoints and weights (we'll selectively include the best ones)
 models/checkpoints/*
@@ -43,9 +44,6 @@ Thumbs.db
 # Virtual environments
 venv/
 .env/
-
-# Test outputs
-test_results/
 
 # PowerShell execution artifacts
 *.ps1
