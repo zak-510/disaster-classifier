@@ -24,8 +24,6 @@ Deployment-ready pipeline for disaster type and damage classification using sate
 - **Major-damage**: 43% (precision: 55%, recall: 35%)
 - **Destroyed**: 72% (precision: 76%, recall: 68%)
 
-**Overall Test Accuracy**: 84%
-
 ## Pipeline Architecture
 
 The system operates in two stages:
@@ -50,7 +48,7 @@ The primary limitation of this pipeline is the **localization model performance*
 - **GPU Memory**: 4GB+ VRAM
 - **System RAM**: 8GB+
 - **Storage**: 2GB+ available space
-- **OS**: Windows 10/11, Linux, or macOS
+- **OS**: Windows 10/11
 
 ### Recommended:
 - **GPU**: RTX 3060 or better
