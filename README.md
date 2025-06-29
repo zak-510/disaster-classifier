@@ -285,9 +285,6 @@ For improvements or bug fixes:
 3. Check generated outputs in `test_results/` directory
 4. Review logs for any error messages
 
-## License
-
-This project is part of the xBD damage assessment research initiative.
 
 ## Acknowledgments
 
