@@ -33,7 +33,7 @@ The system operates in two stages:
 ## Limitations
 
 ### Localization Model Performance
-The primary limitation of this pipeline is the **localization model performance**. Due to hardware constraints (insufficient GPU memory and training time), the localization model was not trained to optimal performance levels. This directly impacts the overall pipeline effectiveness because:
+The limitation of this pipeline is the **localization model performance**. Due to hardware constraints (insufficient GPU memory and training time), the localization model was not trained to optimal performance levels. This impacts the pipeline effectiveness because:
 
 - Poor building detection leads to missed damage assessments
 - False positive detections create noise in damage predictions
@@ -141,9 +141,9 @@ python evaluate_damage_classifier.py
 
 ## Test Image Coverage
 
-The pipeline demonstrates performance across diverse disaster scenarios:
+The pipeline demonstrates performance across different disaster scenarios:
 
-Evaluation covers ten test images spanning multiple disaster types including hurricanes (*hurricane-michael_00000366*), tsunamis (*palu-tsunami_00000181*), wildfires (*santa-rosa-wildfire_00000089*), and other natural disasters. This provides comprehensive testing across different disaster scenarios and geographic regions.
+Evaluation shows ten test images spanning different disaster types including hurricanes (*hurricane-michael_00000366*), tsunamis (*palu-tsunami_00000181*), wildfires (*santa-rosa-wildfire_00000089*), and other natural disasters. This provides testing across different disaster scenarios.
 
 ## Directory Structure
 ```
@@ -190,7 +190,7 @@ python training/train_damage.py
 python training/train_localization.py
 ```
 
-**Note**: Localization model training requires significant computational resources. The current model was undertrained due to hardware limitations.
+**Note**: The current model was undertrained due to hardware limitations.
 
 ## Integration & API
 
@@ -221,7 +221,7 @@ f1_score = run_damage_inference_with_f1()
 ## Performance Analysis
 
 ### Damage Classification Strengths:
-- Excellent performance on "destroyed" buildings (72% F1)
+- Excellent performance on "undamaged" buildings (92% F1)
 - Well-balanced precision/recall for most classes
 
 ### Current Limitations:
@@ -256,7 +256,7 @@ f1_score = run_damage_inference_with_f1()
 
 ## Performance Monitoring
 
-The pipeline includes comprehensive logging and metrics:
+The pipeline includes logging and metrics:
 - Model loading confirmation with file paths
 - Processing time per image
 - Building detection and matching statistics
@@ -266,10 +266,8 @@ The pipeline includes comprehensive logging and metrics:
 ## Production Deployment
 
 This pipeline is designed for production use with:
-- Stable inference performance
-- Comprehensive error handling
+- Error handling
 - Clean visualization outputs
-- Professional logging format
 - Memory-efficient processing
 - Modular architecture for easy integration
 
