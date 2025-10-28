@@ -214,14 +214,3 @@ from inference.damage_inference import run_damage_inference_with_f1
 f1_score = run_damage_inference_with_f1()
 ```
 
-## Performance Analysis
-
-### Damage Classification Strengths:
-- Excellent performance on "undamaged" buildings (92% F1)
-- Well-balanced precision/recall for most classes
-
-### Current Limitations:
-1. **Localization bottleneck**: Suboptimal building detection affects pipeline performance
-2. **Class imbalance**: Minor and major damage classes show lower performance
-3. **Hardware constraints**: Limited training capabilities for localization model
-
