@@ -1,7 +1,3 @@
-# xBD Damage Assessment Pipeline
-
-Deployment-ready pipeline for disaster type and damage classification using satellite imagery from the xBD dataset.
-
 ## Model Performance Metrics
 
 ### Localization Model
@@ -228,59 +224,4 @@ f1_score = run_damage_inference_with_f1()
 1. **Localization bottleneck**: Suboptimal building detection affects pipeline performance
 2. **Class imbalance**: Minor and major damage classes show lower performance
 3. **Hardware constraints**: Limited training capabilities for localization model
-
-### Future Improvements:
-- Enhanced localization model training with better hardware
-- Data augmentation for minority damage classes
-- Ensemble methods for improved robustness
-
-## Troubleshooting
-
-### Common Issues:
-
-**CUDA Out of Memory:**
-- Reduce batch size in training scripts
-- Ensure sufficient GPU memory (4GB+ required)
-
-**Model File Not Found:**
-- Verify model files exist in `weights/` directory
-- Check file paths in inference scripts
-
-**Import Errors:**
-- Install all dependencies: `pip install -r requirements.txt`
-- Ensure PyTorch CUDA version matches your system
-
-**Performance Issues:**
-- Use GPU for inference (CPU significantly slower)
-- Verify CUDA installation and accessibility
-
-## Performance Monitoring
-
-The pipeline includes logging and metrics:
-- Model loading confirmation with file paths
-- Processing time per image
-- Building detection and matching statistics
-- Detailed F1 score calculations per class
-- Confusion matrices and classification reports
-
-## Production Deployment
-
-This pipeline is designed for production use with:
-- Error handling
-- Clean visualization outputs
-- Memory-efficient processing
-- Modular architecture for easy integration
-
-## Contributing
-
-For improvements or bug fixes:
-1. Verify all dependencies are installed correctly
-2. Run inference scripts to confirm functionality
-3. Check generated outputs in `test_results/` directory
-4. Review logs for any error messages
-
-
-## Acknowledgments
-
-Based on the xView2 dataset and challenge for satellite imagery damage assessment.
 
