@@ -185,32 +185,3 @@ python training/train_damage.py
 ```bash
 python training/train_localization.py
 ```
-
-**Note**: The current model was undertrained due to hardware limitations.
-
-## Integration & API
-
-### Core Inference Functions:
-
-#### Building Localization:
-```python
-from tests.test_localization_inference import load_localization_model, predict_localization
-
-model, device = load_localization_model()
-prediction_mask = predict_localization(model, device, image)
-```
-
-#### Damage Classification:
-```python
-from tests.test_damage_inference import load_models, predict_damage
-
-loc_model, damage_model, device = load_models()
-pred_damage, confidence = predict_damage(damage_model, device, patch)
-```
-
-#### Complete Pipeline:
-```python
-from inference.damage_inference import run_damage_inference_with_f1
-f1_score = run_damage_inference_with_f1()
-```
-
