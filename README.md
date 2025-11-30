@@ -20,36 +20,21 @@
 - **Major-damage**: 43% (precision: 55%, recall: 35%)
 - **Destroyed**: 72% (precision: 76%, recall: 68%)
 
-## Pipeline Architecture
+## Architecture
 
-The system operates in two stages:
+Two stages:
 1. **Building Localization**: Identifies building locations in satellite imagery
 2. **Damage Classification**: Classifies damage level for each detected building
 
 ## Limitations
 
 ### Localization Model Performance
-The limitation of this pipeline is the **localization model performance**. Due to hardware constraints (insufficient GPU memory and training time), the localization model was not trained to optimal performance levels. This impacts the pipeline effectiveness because:
+The limitation of this pipeline is the **localization model performance**. Due to hardware constraints (insufficient GPU memory and training time), the localization model was not trained to optimal performance levels. This leads to:
 
 - Poor building detection leads to missed damage assessments
 - False positive detections create noise in damage predictions
-- The damage classification model performs excellently (84.4% F1-weighted) but is limited by the quality of building detections
 
-**Impact**: The damage classifier achieves strong performance when provided with accurate building regions, but the localization bottleneck reduces end-to-end system effectiveness.
-
-## Hardware Requirements
-
-### Minimum System Requirements:
-- **GPU**: NVIDIA GPU with CUDA support
-- **GPU Memory**: 4GB+ VRAM
-- **System RAM**: 8GB+
-- **Storage**: 2GB+ available space
-- **OS**: Windows 10/11
-
-### Recommended:
-- **GPU**: RTX 3060 or better
-- **GPU Memory**: 8GB+ VRAM
-- **System RAM**: 16GB+
+**Impact**: The damage classifier achieves strong performance when provided with accurate building regions, but the localization bottleneck remains an issue.
 
 ## Software Dependencies
 
@@ -81,7 +66,7 @@ cd disaster-classifier
 This project uses the xBD dataset. You will need to download it to train models or run inference.
 
 1. Go to the official xView2 website: https://xview2.org/
-2. Download the dataset (registration may be required)
+2. Download the dataset
 3. Create a `Data` directory in the root of the project
 4. Extract the downloaded dataset with the following structure:
 ```
@@ -135,11 +120,6 @@ python evaluate_damage_classifier.py
 - Generates confusion matrix and classification report
 - Saves detailed results to `test_results/damage_classifier_evaluation.csv`
 
-## Test Image Coverage
-
-The pipeline demonstrates performance across different disaster scenarios:
-
-Evaluation shows ten test images spanning different disaster types including hurricanes (*hurricane-michael_00000366*), tsunamis (*palu-tsunami_00000181*), wildfires (*santa-rosa-wildfire_00000089*), and other natural disasters. This provides testing across different disaster scenarios.
 
 ## Directory Structure
 ```
@@ -172,16 +152,4 @@ xbd-pipeline/
 └── tests/                 # Test utilities (also used as modules)
     ├── test_localization_inference.py
     └── test_damage_inference.py
-```
-
-## Model Training (Optional)
-
-### Damage Classification Model:
-```bash
-python training/train_damage.py
-```
-
-### Localization Model:
-```bash
-python training/train_localization.py
 ```
